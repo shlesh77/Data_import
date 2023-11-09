@@ -60,7 +60,7 @@ options(digits = 9)
 ```
 ```{r db-connect, echo=FALSE}
 # informtion on DBI interface is at https://dbi.r-dbi.org/reference/
-# use the DBI interface to connect to oracle database using odbc.
+# use the DBI interface to connect to SQL database using odbc.
   db0<- DBI::dbConnect(odbc::odbc(), dsn = "******", uid = "*******", pwd = "*******")
 
 ```
