@@ -1,0 +1,92 @@
+---
+title: "Single Family Water Service Usage Data"
+date:  "`r format(Sys.Date(), '%B %d, %Y')`"
+author: "Bijay Paudyal"
+output:
+   html_document
+#### importing Single Family Water Service Usage From Server  
+---
+```{r include=F}
+# Version 1.0 
+# Published date: CCYY-NN-DD
+```
+
+<!-- Setup some global knitr options to control when source code is displayed -->
+```{r , setup, include=F}
+knitr::opts_chunk$set(
+  error = TRUE,
+  echo = T,
+  include = TRUE,
+  collapse = TRUE,
+  results = "asis",
+  message = FALSE
+)
+```
+
+<!-- Set up the R working environment by loading libraries and working folder -->
+```{r loadlibs}
+#  Load the required libraries to get the data from the database and work with
+#  the resulting data.frame containing the rights banking data.
+
+ library(tidyverse) # Tidyverse
+ library(DBI)       # Database interface.
+ library(odbc)      # ODBC is used to connect to water rights database.
+ library(dplyr)     # tidyverse package for working with dataframes.
+ library(writexl)   # used to save the raw data to an Excel workbook.
+
+rm(list = ls()) # clear the workspace of any memory objects.
+options(digits = 9)
+```
+
+
+
+```{r file_path }
+# local environment variables
+  dpath <- "../Data/"
+  ecispath <- "/2000_DataSetLib/BillingDataECIS/"
+
+```
+
+
+
+```{r DBI_Connect }
+# User defined functions for project
+  fixednum <- function(number) {
+      # takes a number and formats as an integer with commas
+    formatted_num <- format(number, big.mark = ",")
+    return(formatted_num)
+  }
+
+```
+```{r db-connect, echo=FALSE}
+# informtion on DBI interface is at https://dbi.r-dbi.org/reference/
+# use the DBI interface to connect to oracle database using odbc.
+  db0<- DBI::dbConnect(odbc::odbc(), dsn = "******", uid = "*******", pwd = "*******")
+
+```
+
+
+##### Connect to database and get data  
+
+<!-- Get the data from the database -->  
+```{r import_data}
+# store the SQL statement used for accessing the view to a string.
+  sql_stm <- 
+  "select l.rym, l.rclass, l.rate_sch, l.ssize, l.prm, l.srvcid,
+          l.tot_use
+    from loaddata.loadtransaction1 l
+   where rym between 202001 and 202012
+         and rclass in ('RMWS', 'RMWD', 'RMWG')
+   order by l.rclass, l.rym;"
+ 
+# assign the query results to a dataframe.
+  df <- DBI::dbGetQuery(db0, sql_stm)
+
+# Make tidy using tidyverse tools
+  df <- as_tibble(df)
+
+# Save the data to a rds file.
+  saveRDS(df, file = paste0("comparison_data",".rds"))
+  
+```
+
